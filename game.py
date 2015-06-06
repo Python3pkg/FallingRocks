@@ -26,6 +26,9 @@ class Game:
     def is_paused(self):
         return self.state is State.paused
 
+    def is_running(self):
+        return self.state is State.running
+
     def pause(self):
         self.state = State.paused
 

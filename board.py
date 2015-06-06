@@ -17,7 +17,7 @@ class Board:
     def set_rock_at_positon(self, x, y, shape):
         pass
 
-    def generate_rocks(self):
+    def generate_new_rock(self):
         pass
 
 
@@ -82,5 +82,8 @@ class Player:
         self.is_invincible = False
         self.speed = 1
 
-    def move(self, direction, speed):
+    def move_left(self, speed):
+        pass
+
+    def move_right(self, speed):
         pass
