@@ -19,9 +19,9 @@ class MainWindow(QMainWindow):
     def __init__(self, game):
         super().__init__()
         self.game = game
-        self.tboard = Board(self, self.game)
+        self.board = Board(self, self.game)
 
-        self.setCentralWidget(self.tboard)
+        self.setCentralWidget(self.board)
 
         self.resize(game.dimensions()[0], game.dimensions()[1])
         self.center()
@@ -62,7 +62,10 @@ class Rock:
     def __init__(self):
         pass
 
-    def draw(self):
+    def draw(self, position):
+        pass
+
+    def fall_down(self):
         pass
 
 
@@ -70,5 +73,16 @@ class Powerup:
     def __init__(self):
         pass
 
-    def draw(self):
+    def draw(self, position):
+        pass
+
+    def fall_down(self):
+        pass
+
+
+class Player:
+    def __init__(self):
+        pass
+
+    def draw(self, position):
         pass

@@ -14,6 +14,8 @@ class Game:
     def __init__(self, board):
         self.board = board
         self.state = State.running
+        self.speed = 1
+        self.level = 1
 
     def dimensions(self):
         return (self.board.width, self.board.height)
@@ -26,6 +28,12 @@ class Game:
 
     def pause(self):
         self.state = State.paused
+
+    def set_speed(self, new_speed):
+        self.speed = new_speed
+
+    def level_up(self):
+        self.level += 1
 
     def key_press_event(self, event):
         pass

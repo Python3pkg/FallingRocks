@@ -4,6 +4,9 @@ from enum import Enum
 class Board:
     def __init__(self, width, height):
         self.width, self.height = width, height
+        self.rocks = []
+        self.powerups = []
+        self.player = Player()
 
     def clear_board(self):
         pass
@@ -12,6 +15,9 @@ class Board:
         pass
 
     def set_rock_at_positon(self, x, y, shape):
+        pass
+
+    def generate_rocks(self):
         pass
 
 
@@ -46,14 +52,35 @@ class Rock:
         pass
 
 
-class Powerups:
-    def __init__(self):
-        pass
+class PowerupTypes(Enum):
+    no_powerup = 0
+    invinciblility = 1
+    big_bomb = 2
+    slow_down_rocks = 3
+
+
+class PowerupDuration(Enum):
+    no_duration = 0
+    invinciblility = 10
+    big_bomb = 1
+    slow_down_rocks = 20
+
+
+class Powerup:
+    def __init__(self, type):
+        self.type = type
+        self.duration = PowerupDuration.no_duration
+
+    def set_duration(self, duration):
+        self.duration = duration
 
 
 class Player:
     def __init__(self):
-        pass
+        self.initial_position = (0, 0)
+        self.current_position = self.initial_position
+        self.is_invincible = False
+        self.speed = 1
 
-    def move(self):
+    def move(self, direction, speed):
         pass
