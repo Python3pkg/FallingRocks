@@ -1,21 +1,25 @@
 from enum import Enum
 
 
-class Board:
+class Field:
     def __init__(self, width, height):
         self.width, self.height = width, height
         self.rocks = []
         self.powerups = []
         self.player = Player()
+        self.field = []
 
-    def clear_board(self):
+    def clear_field(self):
         pass
 
-    def rock_at_positon(self, x, y):
-        pass
+    def get_object(self, x, y):
+        return self.field[(y * self.width) + x]
 
-    def set_rock_at_positon(self, x, y, shape):
-        pass
+    def powerup(self, x, y):
+        return self.field[(y * self.width) + x]
+
+    def set_rock_at_positon(self, x, y, rock):
+        self.field[(y * self.width) + x] = rock
 
     def generate_new_rock(self):
         pass

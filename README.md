@@ -7,3 +7,7 @@ The player has the chance to use some power-ups which will help him to avoid the
 
 ## Additional Features
 The game can be paused and resumed at any time by pressing the 'p' key on the keyboard.
+
+## User Interface
+The UI is very simple to use. In the main window are visualized the falling rocks and power-ups. The player is situated on the bottom of the window. Moreover, there is a status bar on the bottom of the screen which shows a useful information about the game like "Paused", "New Game" etc.
+

@@ -1,5 +1,4 @@
 from enum import Enum
-from board import Board
 
 
 class State(Enum):
@@ -11,21 +10,25 @@ class State(Enum):
 
 
 class Game:
-    def __init__(self, board):
-        self.board = board
+    def __init__(self, field):
+        self.field = field
         self.state = State.running
         self.speed = 1
         self.level = 1
+        self.ui = None
 
     def dimensions(self):
-        return (self.board.width, self.board.height)
+        return (self.field.width, self.field.height)
 
+    @property
     def is_lost(self):
         return self.state is State.lost
 
+    @property
     def is_paused(self):
         return self.state is State.paused
 
+    @property
     def is_running(self):
         return self.state is State.running
 
@@ -38,13 +41,10 @@ class Game:
     def level_up(self):
         self.level += 1
 
-    def key_press_event(self, event):
+    def generate_powerup(self, position):
         pass
 
-    def generate_powerups(self, position):
-        pass
-
-    def generate_rocks(self, position):
+    def generate_rock(self, position):
         pass
 
     def collison_detection(self):

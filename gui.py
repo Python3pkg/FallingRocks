@@ -1,6 +1,4 @@
-import sys
-from game import State
-from PyQt5.QtCore import QObject, Qt, pyqtSignal, QSize
+from PyQt5.QtCore import QObject, Qt, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, \
     QDesktopWidget
 from PyQt5.QtGui import QIcon
@@ -11,7 +9,7 @@ class UserInterface:
         self.game = game
 
     def main_loop(self):
-        app = QApplication(sys.argv)
+        app = QApplication([])
         self.main_window = MainWindow(self.game)
         app.exec_()
 
@@ -20,25 +18,35 @@ class MainWindow(QMainWindow):
     def __init__(self, game):
         super().__init__()
         self.game = game
-        self.board = Board(self, self.game)
-        self.setCentralWidget(self.board)
+        self.field_ui = FieldUI(self, self.game)
 
-        self.com = Communicate()
-        self.statusbar = self.statusBar()
-        self.com.message_statusbar[str].connect(self.statusbar.showMessage)
-        self.com.message_statusbar.emit("New game")
+        self.set_dimensions()
 
-        self.resize(game.dimensions()[0], game.dimensions()[1])
-        self.center()
+        self.init_status_bar()
+
         self.setWindowIcon(QIcon('small_icon.png'))
         self.setWindowTitle('Falling Rocks')
         self.show()
 
-    def center(self):
+    def center_window(self):
+        self.setCentralWidget(self.field_ui)
         screen = QDesktopWidget().screenGeometry()
         size = self.geometry()
         self.move((screen.width() - size.width()) / 2,
                   (screen.height() - size.height()) / 2)
+
+    def init_status_bar(self):
+        self.communicate = Communicate()
+        self.statusbar = self.statusBar()
+        self.communicate.message_statusbar[str].\
+            connect(self.statusbar.showMessage)
+        self.communicate.message_statusbar.emit("New game")
+
+    def set_dimensions(self):
+        self.height = self.game.dimensions()[0]
+        self.width = self.game.dimensions()[1]
+        self.resize(self.height, self.width)
+        self.center_window()
 
 
 class Communicate(QObject):
@@ -48,11 +56,13 @@ class Communicate(QObject):
     message_statusbar = pyqtSignal(str)
 
 
-class Board(QFrame):
+class FieldUI(QFrame):
     def __init__(self, parent, game):
-        super().__init__()
+        super().__init__(parent)
         self.game = game
         self.width, self.height = self.game.dimensions()
+        self.communicate = Communicate()
+        self.setFocusPolicy(Qt.StrongFocus)
 
     def draw(self):
         pass
@@ -61,28 +71,27 @@ class Board(QFrame):
         pass
 
     def keyPressEvent(self, event):
-        if not self.game.is_running():
+        if not self.game.is_running:
+            super(FieldUI, self).keyPressEvent(event)
             return
 
         key = event.key()
-
         if key == Qt.Key_P:
             self.game.pause()
             return
-        if self.self.game.is_paused():
+        if self.game.is_paused:
             return
         elif key == Qt.Key_Left:
-            pass
+            self.communicate.move_left.emit()
         elif key == Qt.Key_Right:
-            pass
-
+            self.communicate.move_right.emit()
 
     def timerEvent(self, event):
         pass
 
 
-class Rock:
-    def __init__(self):
+class RockUI:
+    def __init__(self, game):
         pass
 
     def draw(self, position):
@@ -92,8 +101,8 @@ class Rock:
         pass
 
 
-class Powerup:
-    def __init__(self):
+class PowerupUI:
+    def __init__(self, game):
         pass
 
     def draw(self, position):
@@ -103,17 +112,17 @@ class Powerup:
         pass
 
 
-class Player:
-    def __init__(self):
-        self.com = Communicate()
-        self.com.move_left.connect(self.move_left)
-        self.com.move_right.connect(self.move_right)
+class PlayerUI:
+    def __init__(self, game):
+        self.communicate = Communicate()
+        self.communicate.move_left.connect(self.move_left)
+        self.communicate.move_right.connect(self.move_right)
 
     def draw(self, position):
         pass
 
-    def move_left(self, speed):
+    def move_left(self):
         pass
 
-    def move_right(self, speed):
+    def move_right(self):
         pass

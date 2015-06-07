@@ -1,11 +1,11 @@
-from board import Board
+from field import Field
 from game import Game
 import gui
 
 
 def main():
-    board = Board(1080, 800)
-    game = Game(board)
+    field = Field(1080, 800)
+    game = Game(field)
     game.ui = gui.UserInterface(game)
     game.ui.main_loop()
 
