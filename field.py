@@ -15,13 +15,13 @@ class Field:
     def get_object(self, x, y):
         return self.field[(y * self.width) + x]
 
-    def powerup(self, x, y):
-        return self.field[(y * self.width) + x]
-
     def set_rock_at_positon(self, x, y, rock):
         self.field[(y * self.width) + x] = rock
 
-    def generate_new_rock(self):
+    def generate_powerup(self, position):
+        pass
+
+    def generate_rock(self, position):
         pass
 
 
@@ -65,14 +65,14 @@ class PowerupTypes(Enum):
 
 class PowerupDuration(Enum):
     no_duration = 0
-    invinciblility = 10
-    big_bomb = 1
-    slow_down_rocks = 20
+    instant = 1
+    small = 10
+    medium = 20
 
 
 class Powerup:
-    def __init__(self, type):
-        self.type = type
+    def __init__(self, powerup_type):
+        self.type = powerup_type
         self.duration = PowerupDuration.no_duration
 
     def set_duration(self, duration):

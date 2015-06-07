@@ -61,6 +61,11 @@ class FieldUI(QFrame):
         super().__init__(parent)
         self.game = game
         self.width, self.height = self.game.dimensions()
+
+        self.player_ui = PlayerUI(self.game)
+        self.rock_ui = RockUI(self.game)
+        self.powerup_ui = PowerupUI(self.game)
+
         self.communicate = Communicate()
         self.setFocusPolicy(Qt.StrongFocus)
 

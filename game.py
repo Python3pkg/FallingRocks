@@ -15,7 +15,6 @@ class Game:
         self.state = State.running
         self.speed = 1
         self.level = 1
-        self.ui = None
 
     def dimensions(self):
         return (self.field.width, self.field.height)
@@ -41,11 +40,8 @@ class Game:
     def level_up(self):
         self.level += 1
 
-    def generate_powerup(self, position):
-        pass
-
-    def generate_rock(self, position):
-        pass
-
     def collison_detection(self):
         pass
+
+    def set_ui(self, ui):
+        self.user_interface = ui
