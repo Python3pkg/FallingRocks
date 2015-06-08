@@ -42,6 +42,3 @@ class Game:
 
     def collison_detection(self):
         pass
-
-    def set_ui(self, ui):
-        self.user_interface = ui

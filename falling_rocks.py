@@ -7,7 +7,6 @@ def main():
     field = Field(1080, 800)
     game = Game(field)
     ui = gui.UserInterface(game)
-    game.set_ui(ui)
     ui.main_loop()
 
 if __name__ == '__main__':

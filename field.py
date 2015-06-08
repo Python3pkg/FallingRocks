@@ -1,4 +1,4 @@
-from enum import Enum
+from player import Player
 
 
 class Field:
@@ -22,72 +22,4 @@ class Field:
         pass
 
     def generate_rock(self, position):
-        pass
-
-
-class RockShape(Enum):
-    no_shape = 0
-    vertical_rock = 1
-    horizontal_rock = 2
-    big_rock = 3
-
-
-class Rock:
-    def __init__(self, position):
-        self.rock_shape = RockShape.no_shape
-        self.position = position
-
-    def shape(self):
-        return self.pieceShape
-
-    def set_shape(self, shape):
-        pass
-
-    def set_random_shape(self):
-        pass
-
-    def x(self):
-        return self.position[0]
-
-    def y(self):
-        return self.position[1]
-
-    def fall_down(self):
-        pass
-
-
-class PowerupTypes(Enum):
-    no_powerup = 0
-    invinciblility = 1
-    big_bomb = 2
-    slow_down_rocks = 3
-
-
-class PowerupDuration(Enum):
-    no_duration = 0
-    instant = 1
-    small = 10
-    medium = 20
-
-
-class Powerup:
-    def __init__(self, powerup_type):
-        self.type = powerup_type
-        self.duration = PowerupDuration.no_duration
-
-    def set_duration(self, duration):
-        self.duration = duration
-
-
-class Player:
-    def __init__(self):
-        self.initial_position = (0, 0)
-        self.current_position = self.initial_position
-        self.is_invincible = False
-        self.speed = 1
-
-    def move_left(self, speed):
-        pass
-
-    def move_right(self, speed):
         pass
