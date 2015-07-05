@@ -1,5 +1,5 @@
 from enum import Enum
-# from gui import RockUI
+from gui import RockUI
 
 
 class RockShape(Enum):
@@ -31,8 +31,8 @@ class Rock:
     def set_random_shape(self):
         pass
 
-    def set_random_color(self):
-        pass
+    # def set_random_color(self):
+    #     pass
 
     def x(self):
         return self.position[0]
@@ -42,6 +42,9 @@ class Rock:
 
     def fall_down(self):
         pass
+
+    def set_speed(self, new_speed):
+        self.speed = new_speed
 
     @property
     def rock_speed(self):

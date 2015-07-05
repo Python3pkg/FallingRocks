@@ -12,9 +12,10 @@ class State(Enum):
 class Game:
     def __init__(self, field):
         self.field = field
-        self.state = State.running
-        self.speed = 1000
-        self.level = 1
+        self.__state = State.running
+        self.__game_speed = 630
+        self.__level_speed = 35000
+        self.__level = 1
 
     @property
     def dimensions(self):
@@ -22,39 +23,54 @@ class Game:
 
     @property
     def is_lost(self):
-        return self.state is State.lost
+        return self.__state is State.lost
 
     @property
     def is_paused(self):
-        return self.state is State.paused
+        return self.__state is State.paused
 
     @property
     def is_running(self):
-        return self.state is State.running
+        return self.__state is State.running
 
     def pause(self):
-        self.state = State.paused
+        self.__state = State.paused
 
     def unpause(self):
-        self.state = State.running
+        self.__state = State.running
 
     def set_speed(self, new_speed):
-        self.speed = new_speed
+        self.__game_speed = new_speed
 
     def level_up(self):
-        self.level += 1
+        self.__level += 1
 
     def collison_detection(self):
         pass
 
     @property
     def game_speed(self):
-        return self.speed
+        return self.__game_speed
 
     @property
     def rock_speed(self):
         return self.field.rock_speed
 
     @property
+    def player_speed(self):
+        return self.field.player_speed
+
+    @property
     def rocks(self):
         return self.field.rocks
+
+    @property
+    def level_speed(self):
+        return self.__level_speed
+
+    @property
+    def level(self):
+        return self.__level
+
+    def set_rock_speed(self, new_speed):
+        self.field.set_rock_speed(new_speed)

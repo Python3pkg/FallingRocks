@@ -26,6 +26,13 @@ class Field:
     def generate_rock(self, position):
         pass
 
+    def set_rock_speed(self, new_speed):
+        self.rock.set_speed(new_speed)
+
     @property
     def rock_speed(self):
         return self.rock.rock_speed
+
+    @property
+    def player_speed(self):
+        return self.player.player_speed
