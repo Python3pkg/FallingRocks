@@ -13,9 +13,10 @@ class Game:
     def __init__(self, field):
         self.field = field
         self.state = State.running
-        self.speed = 1
+        self.speed = 1000
         self.level = 1
 
+    @property
     def dimensions(self):
         return (self.field.width, self.field.height)
 
@@ -34,6 +35,9 @@ class Game:
     def pause(self):
         self.state = State.paused
 
+    def unpause(self):
+        self.state = State.running
+
     def set_speed(self, new_speed):
         self.speed = new_speed
 
@@ -42,3 +46,15 @@ class Game:
 
     def collison_detection(self):
         pass
+
+    @property
+    def game_speed(self):
+        return self.speed
+
+    @property
+    def rock_speed(self):
+        return self.field.rock_speed
+
+    @property
+    def rocks(self):
+        return self.field.rocks

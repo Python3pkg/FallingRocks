@@ -1,4 +1,5 @@
 from player import Player
+from rock import Rock
 
 
 class Field:
@@ -8,6 +9,7 @@ class Field:
         self.powerups = []
         self.player = Player()
         self.field = []
+        self.rock = Rock()
 
     def clear_field(self):
         pass
@@ -23,3 +25,7 @@ class Field:
 
     def generate_rock(self, position):
         pass
+
+    @property
+    def rock_speed(self):
+        return self.rock.rock_speed
