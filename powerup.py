@@ -4,9 +4,10 @@ import random
 
 class PowerupType(IntEnum):
     no_powerup = 0
-    invinciblility = 1
+    player_invinciblility = 1
     big_bomb = 2
     slow_down_rocks = 3
+    shoot_rocks = 4
 
 
 class PowerupDuration(IntEnum):
@@ -14,14 +15,17 @@ class PowerupDuration(IntEnum):
     instant = 10
     small = 10000
     medium = 20000
+    big = 30000
 
 
 class PowerupTimeInterval(IntEnum):
     no_time_interval = 0
-    small = 10000
-    medium = 15000
-    big = 20000
-    test = 4000
+    small = 12413
+    medium = 34847
+    big = 47093
+    very_big = 74051
+    huge = 101009
+
 
 
 class Powerup:

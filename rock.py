@@ -29,7 +29,7 @@ class Rock:
         return self.pieceShape
 
     def set_random_position(self, max_value):
-        return random.randint(1, max_value)
+        return random.randint(5, max_value)
 
     def set_random_shape(self, max_value):
         return random.randint(1, max_value)
