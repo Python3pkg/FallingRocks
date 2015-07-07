@@ -1,5 +1,6 @@
 from player import Player
 from rock import Rock
+from powerup import Powerup, PowerupType
 
 
 class Field:
@@ -7,9 +8,10 @@ class Field:
         self.width, self.height = width, height
         self.rocks = []
         self.powerups = []
-        self.player = Player()
-        self.field = []
-        self.rock = Rock()
+        self.__player = Player()
+        # self.field = []
+        self.__rock = Rock()
+        self.__powerup = Powerup(PowerupType.no_powerup)
 
     def clear_field(self):
         pass
@@ -17,8 +19,8 @@ class Field:
     def get_object(self, x, y):
         return self.field[(y * self.width) + x]
 
-    def set_rock_at_positon(self, x, y, rock):
-        self.field[(y * self.width) + x] = rock
+    # def set_rock_at_positon(self, x, y, rock):
+    #     self.field[(y * self.width) + x] = rock
 
     def generate_powerup(self, position):
         pass
@@ -31,8 +33,24 @@ class Field:
 
     @property
     def rock_speed(self):
-        return self.rock.rock_speed
+        return self.__rock.rock_speed
 
     @property
     def player_speed(self):
-        return self.player.player_speed
+        return self.__player.player_speed
+
+    @property
+    def player(self):
+        return self.__player
+
+    @property
+    def rock(self):
+        return self.__rock
+
+    @property
+    def powerup(self):
+        return self.__powerup
+
+    @property
+    def player_invincibility_time(self):
+        return self.__player.player_invincibility_time
