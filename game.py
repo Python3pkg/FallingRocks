@@ -113,3 +113,15 @@ class Game:
     @property
     def powerups(self):
         return self.field.powerups
+
+    @property
+    def bullet(self):
+        return self.field.bullet
+
+    @property
+    def bullets(self):
+        return self.field.bullets
+
+    @property
+    def bullet_speed(self):
+        return self.field.bullet_speed

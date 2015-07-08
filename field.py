@@ -1,6 +1,7 @@
 from player import Player
 from rock import Rock
 from powerup import Powerup, PowerupType
+from bullet import Bullet
 
 
 class Field:
@@ -8,10 +9,12 @@ class Field:
         self.width, self.height = width, height
         self.rocks = []
         self.powerups = []
+        self.bullets = []
         self.__player = Player()
         # self.field = []
         self.__rock = Rock()
         self.__powerup = Powerup(PowerupType.no_powerup)
+        self.__bullet = Bullet()
 
     def clear_field(self):
         pass
@@ -50,6 +53,14 @@ class Field:
     @property
     def powerup(self):
         return self.__powerup
+
+    @property
+    def bullet(self):
+        return self.__bullet
+
+    @property
+    def bullet_speed(self):
+        return self.__bullet.bullet_speed
 
     @property
     def player_invincibility_time(self):

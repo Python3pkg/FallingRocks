@@ -119,6 +119,7 @@ class FieldUI(QFrame):
         self.game = game
         self.rocks = self.game.rocks
         self.powerups = self.game.powerups
+        self.bullets = self.game.bullets
         self.width, self.height = self.game.dimensions
 
         self.init_timers()
@@ -127,6 +128,7 @@ class FieldUI(QFrame):
 
         # self.player_ui = PlayerUI(self.main_window, self.game)
         self.player_ui = PlayerUI(self, self.game)
+        # self.bullet_ui = BulletUI(self, self.game, self.player_ui)
         # self.rock_ui = RockUI(parent, self.game)
         # self.powerup_ui = PowerupUI(self, self.game, 1)
 
@@ -141,11 +143,13 @@ class FieldUI(QFrame):
         self.level_timer = QBasicTimer()
         self.powerup_timer = QBasicTimer()
         self.ticker_timer = QBasicTimer()
+        self.bullet_timer = QBasicTimer()
 
         self.player_invincibility_timer = QBasicTimer()
         self.big_bomb_timer = QBasicTimer()
         self.slow_down_rocks_timer = QBasicTimer()
         self.shoot_rocks_timer = QBasicTimer()
+
         self.powerup_duration_timer = QTimer()
 
     def start_timers(self):
@@ -158,20 +162,28 @@ class FieldUI(QFrame):
                                               self)
         self.big_bomb_timer.start(int(PowerupTimeInterval.big), self)
         self.slow_down_rocks_timer.start(int(PowerupTimeInterval.
-                                         very_big), self)
+                                         medium), self)
         self.shoot_rocks_timer.start(int(PowerupTimeInterval.
-                                     huge), self)
+                                     medium), self)
+        self.bullet_timer.start(self.game.bullet_speed, self)
+        if self.game.is_paused:
+            pass
+            # self.powerup_duration_timer.stop()
 
     def stop_timers(self):
         self.game_timer.stop()
         self.rock_timer.stop()
         self.level_timer.stop()
         self.powerup_timer.stop()
+        self.ticker_timer.stop()
+        self.bullet_timer.stop()
 
         self.player_invincibility_timer.stop()
         self.big_bomb_timer.stop()
         self.slow_down_rocks_timer.stop()
         self.shoot_rocks_timer.stop()
+
+        self.powerup_duration_timer.stop()
 
     def init_signals(self):
         self.com = Communicate()
@@ -242,8 +254,14 @@ class FieldUI(QFrame):
                 self.show_player_invincibility_info(self.ticker["value"])
             if self.ticker["type"] == "slow_down_rocks":
                 self.show_slow_down_rocks_info(self.ticker["value"])
+            if self.ticker["type"] == "shoot_rocks":
+                self.show_shoot_rocks_info(self.ticker["value"])
+                self.bullet_ui = BulletUI(self.game, self.player_ui)
+                self.bullets.append(self.bullet_ui)
             # self.show_slow_down_rocks_info(self.ticker)
-
+        elif event.timerId() == self.bullet_timer.timerId():
+            if self.bullets.count != 0:
+                self.shoot_bullets()
         else:
             super(FieldUI, self).timerEvent(event)
 
@@ -300,6 +318,7 @@ class FieldUI(QFrame):
 
     def stop_slow_down_rocks(self):
         self.powerup_duration_timer.stop()
+        self.ticker_timer.stop()
         self.game.set_rock_speed(self.game.rock_speed - 3)
         self.game_timer.start(self.game.game_speed, self)
         self.rock_timer.start(self.game.rock_speed, self)
@@ -308,8 +327,46 @@ class FieldUI(QFrame):
         self.main_window.communicate.message_statusbar.\
             emit("The rock are no longer slowed down. Be careful!")
 
+    def shoot_bullets(self):
+        temp_bullet = None
+        for bullet in self.bullets:
+            if(bullet.y <= 1):
+                # print("die")
+                temp_bullet = bullet
+            else:
+                bullet.move_to_target()
+            for rock in self.rocks:
+                if self.game.collision_detected(bullet, rock):
+                    self.remove_rock_from_field(rock)
+                    print("bullet_collision_detected")
+        if temp_bullet is not None:
+            self.remove_bullet_from_field(temp_bullet)
+            # self.remove_rock_from_field(temp_rock)
+
     def init_shoot_rocks(self):
-        pass
+        # some method
+        # self.bullet_timer.start(self.game.bullet_speed, self)
+
+        self.ticker = {"type": "shoot_rocks",
+                       "value": int(PowerupDuration.medium) // 1000}
+        self.show_slow_down_rocks_info(self.ticker["value"])
+        self.ticker_timer.start(1000, self)
+
+        self.powerup_duration_timer.setSingleShot(True)
+        self.powerup_duration_timer.singleShot(
+            int(PowerupDuration.medium), self.stop_shoot_rocks)
+
+    def show_shoot_rocks_info(self, value):
+        # value = value // 1000
+        self.main_window.communicate.message_statusbar.\
+            emit("You have bullets for " + str(value) + " seconds")
+
+    def stop_shoot_rocks(self):
+        self.powerup_duration_timer.stop()
+        self.ticker_timer.stop()
+        # self.bullet_timer.stop()
+        self.main_window.communicate.message_statusbar.\
+            emit("No more bullets!")
 
     def init_big_bomb(self):
         # del self.rocks[:]
@@ -357,6 +414,13 @@ class FieldUI(QFrame):
         powerup.remove_shape()
         if(self.powerups.count == 0):
             self.powerup_timer.stop()
+
+    def remove_bullet_from_field(self, bullet):
+        print("bullet died")
+        self.bullets.remove(bullet)
+        bullet.remove_shape()
+        if(self.bullets.count == 0):
+            self.bullet_timer.stop()
 
     def drop_down_rocks(self):
         temp_rock = None
@@ -425,6 +489,64 @@ class FieldUI(QFrame):
             # self.msg2Statusbar.emit(str(self.numLinesRemoved))
             self.main_window.communicate.message_statusbar.emit("Running")
         self.update()
+
+
+class BulletUI(QWidget):
+    def __init__(self, game, player_ui):
+        self.main_window = UserInterface.get_main_window()
+        super().__init__(self.main_window)
+        self.setParent = self.main_window
+    # def __init__(self, parent, game, player_ui):
+    #     super().__init__(parent)
+    #     self.game = game
+    #     self.main_window = parent
+        self.game = game
+        self.bullet = self.game.bullet
+        self.player_ui = player_ui
+        self.field_width = self.game.dimensions[0]
+        self.field_height = self.game.dimensions[1]
+
+        self.pixmap = QPixmap("images/bullet.png")
+
+        self.set_shape_size()
+
+        # self.move(200, 2)
+        # self.move(self.position[0], self.position[1])
+        self.set_position()
+        self.show()
+
+    def set_shape_size(self):
+        self.label = QLabel(self)
+        self.myScaledPixmap = self.pixmap.scaled(self.label.size(),
+                                                 Qt.KeepAspectRatio)
+        self.label.setPixmap(self.pixmap)
+        self.image_size = (self.pixmap.width(), self.pixmap.height())
+        self.width = self.pixmap.width()
+        self.height = self.pixmap.height()
+        # print(self.width, self.height, type(self.width))
+        # print(self.image_size)
+        self.label.setFixedHeight(self.image_size[1])
+        self.label.setFixedWidth(self.image_size[0])
+        self.label.setScaledContents(True)
+
+    def set_position(self):
+        # self.x = self.random_coords + 1
+        # self.y = 1
+
+        self.x = self.player_ui.x + self.player_ui.width / 2 - 15
+        self.y = self.player_ui.y - self.player_ui.height / 2 + 15
+
+        self.move(self.x, self.y)
+
+        self.update()
+
+    def move_to_target(self):
+        self.y -= 5
+        self.move(self.x, self.y)
+
+    def remove_shape(self):
+        self.hide()
+        self.destroy()
 
 
 class RockUI(QWidget):
@@ -618,7 +740,7 @@ class PlayerUI(QWidget):
         # self.position = [self.field_width / 2 - self.image_size[0],
         #                  self.field_height - 50]
         # self.move(self.position[0], self.position[1])
-        self.x = self.field_width / 2 - self.image_size[0]
+        self.x = (self.field_width - self.image_size[0]) / 2
         self.y = self.field_height - 50
         self.move(self.x, self.y)
 
