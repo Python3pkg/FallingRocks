@@ -89,9 +89,11 @@ class MainWindow(QMainWindow):
         # sys.exit(UserInterface.app.exec_())
 
         # UserInterface.app.exec_()
-        UserInterface.app.exit()
-        # sys.exit(UserInterface.app.exec_())
+        self.exit_game()
         subprocess.call("python" + " falling_rocks.py", shell=True)
+
+    def exit_game(self):
+        UserInterface.app.exit()
 
 
 class Communicate(QObject):
@@ -102,6 +104,7 @@ class Communicate(QObject):
     move_right = pyqtSignal()
     pause = pyqtSignal()
     restart = pyqtSignal()
+    exit = pyqtSignal()
     message_statusbar = pyqtSignal(str)
 
 
@@ -137,6 +140,7 @@ class FieldUI(QFrame):
         self.rock_timer = QBasicTimer()
         self.level_timer = QBasicTimer()
         self.powerup_timer = QBasicTimer()
+        self.ticker_timer = QBasicTimer()
 
         self.player_invincibility_timer = QBasicTimer()
         self.big_bomb_timer = QBasicTimer()
@@ -150,20 +154,20 @@ class FieldUI(QFrame):
         self.level_timer.start(self.game.level_speed, self)
         # print(type(PowerupTimeInterval.medium))
         self.powerup_timer.start(self.game.rock_speed, self)
-        print(int(PowerupTimeInterval.test))
         self.player_invincibility_timer.start(int(PowerupTimeInterval.medium),
                                               self)
         self.big_bomb_timer.start(int(PowerupTimeInterval.big), self)
-        self.slow_down_rocks_timer.start_timers(int(PowerupTimeInterval.
-                                                very_big), self)
-        self.shoot_rocks_timer.start_timers(int(PowerupTimeInterval.
-                                                huge), self)
+        self.slow_down_rocks_timer.start(int(PowerupTimeInterval.
+                                         very_big), self)
+        self.shoot_rocks_timer.start(int(PowerupTimeInterval.
+                                     huge), self)
 
     def stop_timers(self):
         self.game_timer.stop()
         self.rock_timer.stop()
         self.level_timer.stop()
         self.powerup_timer.stop()
+
         self.player_invincibility_timer.stop()
         self.big_bomb_timer.stop()
         self.slow_down_rocks_timer.stop()
@@ -174,6 +178,7 @@ class FieldUI(QFrame):
         self.com.move_left.connect(self.player_ui.move_left)
         self.com.move_right.connect(self.player_ui.move_right)
         self.com.restart.connect(self.main_window.restart_game)
+        self.com.exit.connect(self.main_window.exit_game)
 
     # def restart_game(self):
     #     pass
@@ -214,6 +219,7 @@ class FieldUI(QFrame):
             self.powerup_timer.start(self.game.rock_speed, self)
             self.powerup_ui = PowerupUI(self.game, PowerupType.
                                         player_invinciblility)
+
             self.powerups.append(self.powerup_ui)
             # print("powerup")
         elif event.timerId() == self.big_bomb_timer.timerId():
@@ -222,23 +228,24 @@ class FieldUI(QFrame):
             self.powerup_ui = PowerupUI(self.game, PowerupType.big_bomb)
             self.powerups.append(self.powerup_ui)
         elif event.timerId() == self.slow_down_rocks_timer.timerId():
-            self.slow_down_rocks_timer.start(self.game.rock_speed, self)
+            self.powerup_timer.start(self.game.rock_speed, self)
             self.powerup_ui = PowerupUI(self.game, PowerupType.slow_down_rocks)
             self.powerups.append(self.powerup_ui)
         elif event.timerId() == self.shoot_rocks_timer.timerId():
-            self.shoot_rocks_timer.start(self.game.rock_speed, self)
+            self.powerup_timer.start(self.game.rock_speed, self)
             self.powerup_ui = PowerupUI(self.game, PowerupType.shoot_rocks)
             self.powerups.append(self.powerup_ui)
+        elif event.timerId() == self.ticker_timer.timerId():
+            self.ticker["value"] -= 1
+            print("ticker ", self.ticker)
+            if self.ticker["type"] == "player_invincibility":
+                self.show_player_invincibility_info(self.ticker["value"])
+            if self.ticker["type"] == "slow_down_rocks":
+                self.show_slow_down_rocks_info(self.ticker["value"])
+            # self.show_slow_down_rocks_info(self.ticker)
+
         else:
             super(FieldUI, self).timerEvent(event)
-
-    def stop_powerup_timer(self):
-        self.powerup_duration_timer.stop()
-        self.player_ui.set_player_invinciblity()
-        print("again")
-        print(self.player_ui.is_player_invincible)
-        self.main_window.communicate.message_statusbar.\
-            emit("The player's invinciblility is off")
 
     def drop_down_powerups(self):
         temp_powerup = None
@@ -258,12 +265,51 @@ class FieldUI(QFrame):
                 elif powerup.type == PowerupType.big_bomb:
                     self.init_big_bomb()
                 elif powerup.type == PowerupType.slow_down_rocks:
-                    pass
+                    self.init_slow_down_rocks()
                 elif powerup.type == PowerupType.shoot_rocks:
-                    pass
-
+                    self.init_shoot_rocks()
         if temp_powerup is not None:
             self.remove_powerup_from_field(temp_powerup)
+
+    def init_slow_down_rocks(self):
+        self.game.set_rock_speed(self.game.rock_speed + 3)
+        self.game_timer.start(self.game.game_speed, self)
+        self.rock_timer.start(self.game.rock_speed, self)
+
+        # self.main_window.communicate.message_statusbar.\
+        #     emit("The rock are slowed down for " +
+        #          str(int(PowerupDuration.medium) // 1000) +
+        #          " seconds")
+        self.ticker = {"type": "slow_down_rocks",
+                       "value": int(PowerupDuration.medium) // 1000}
+        self.show_slow_down_rocks_info(self.ticker["value"])
+        self.ticker_timer.start(1000, self)
+
+        # self.powerup_duration_timer.start(int(PowerupDuration.
+        #                                   medium))
+        # self.powerup_duration_timer.timeout.\
+        #     connect(self.stop_slow_down_rocks)
+        self.powerup_duration_timer.setSingleShot(True)
+        self.powerup_duration_timer.singleShot(
+            int(PowerupDuration.medium), self.stop_slow_down_rocks)
+
+    def show_slow_down_rocks_info(self, value):
+        # value = value // 1000
+        self.main_window.communicate.message_statusbar.\
+            emit("The rock are slowed down for " + str(value) + " seconds")
+
+    def stop_slow_down_rocks(self):
+        self.powerup_duration_timer.stop()
+        self.game.set_rock_speed(self.game.rock_speed - 3)
+        self.game_timer.start(self.game.game_speed, self)
+        self.rock_timer.start(self.game.rock_speed, self)
+        print("again")
+        # print(self.player_ui.is_player_invincible)
+        self.main_window.communicate.message_statusbar.\
+            emit("The rock are no longer slowed down. Be careful!")
+
+    def init_shoot_rocks(self):
+        pass
 
     def init_big_bomb(self):
         # del self.rocks[:]
@@ -275,21 +321,42 @@ class FieldUI(QFrame):
         if not self.player_ui.is_player_invincible:
             self.player_ui.set_player_invinciblity()
             print("init player", self.player_ui.is_player_invincible)
-            self.main_window.communicate.message_statusbar.\
-                emit("The player is invincible for " +
-                     str(int(PowerupDuration.small) // 1000) +
-                     " seconds")
-            self.powerup_duration_timer.start(int(PowerupDuration.
-                                              medium))
-            self.powerup_duration_timer.timeout.\
-                connect(self.stop_powerup_timer)
-            # self.powerup_duration_timer.setSingleShot(True)
+            # self.main_window.communicate.message_statusbar.\
+            #     emit("The player is invincible for " +
+            #          str(int(PowerupDuration.small) // 1000) +
+            #          " seconds")
+            self.ticker = {"type": "slow_down_rocks",
+                           "value": int(PowerupDuration.small) // 1000}
+            self.show_slow_down_rocks_info(self.ticker["value"])
+            self.ticker_timer.start(1000, self)
+            # self.powerup_duration_timer.start(int(PowerupDuration.
+            #                                   small))
+            # self.powerup_duration_timer.timeout.\
+            #     connect(self.stop_player_invincibility_timer)
+            self.powerup_duration_timer.setSingleShot(True)
+            self.powerup_duration_timer.singleShot(
+                int(PowerupDuration.small), self.stop_player_invincibility)
+
+    def stop_player_invincibility(self):
+        self.powerup_duration_timer.stop()
+        self.ticker_timer.stop()
+        self.player_ui.set_player_invinciblity()
+        print("again")
+        print(self.player_ui.is_player_invincible)
+        self.main_window.communicate.message_statusbar.\
+            emit("The player's invinciblility is off. You are mortal again!")
+
+    def show_player_invincibility_info(self, value):
+        # value = value // 1000
+        self.main_window.communicate.message_statusbar.\
+            emit("The player is invincible for " + str(value) + " seconds")
 
     def remove_powerup_from_field(self, powerup):
         print("powerup died")
         self.powerups.remove(powerup)
         powerup.remove_shape()
-        self.powerup_timer.stop()
+        if(self.powerups.count == 0):
+            self.powerup_timer.stop()
 
     def drop_down_rocks(self):
         temp_rock = None
@@ -336,6 +403,8 @@ class FieldUI(QFrame):
             self.com.move_right.emit()
         elif key == Qt.Key_R:
             self.com.restart.emit()
+        elif key == Qt.Key_Escape:
+            self.com.exit.emit()
 
     def pause(self):
         # if not self.game.isStarted:

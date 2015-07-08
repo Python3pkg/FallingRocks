@@ -13,9 +13,9 @@ class PowerupType(IntEnum):
 class PowerupDuration(IntEnum):
     no_duration = 0
     instant = 10
-    small = 10000
-    medium = 20000
-    big = 30000
+    small = 10 * 1000
+    medium = 20 * 1000
+    big = 30 * 1000
 
 
 class PowerupTimeInterval(IntEnum):
@@ -27,11 +27,11 @@ class PowerupTimeInterval(IntEnum):
     huge = 101009
 
 
-
 class Powerup:
     def __init__(self, type):
         self.type = type
         self.duration = PowerupDuration.no_duration
+        # self.ticker = 0
 
     def set_duration(self, powerup_type):
         # self.duration = new_duration
