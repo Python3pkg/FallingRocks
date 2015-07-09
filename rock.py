@@ -21,7 +21,9 @@ class Rock:
         # self.shape = RockShape.no_shape
         # self.color = RockColor.white
         # self.speed = 90
-        self.speed = 50
+        self.__speed = 50
+        # self.__x = 0
+        # self.__y = 0
 
         # self.ui = RockUI()
 
@@ -29,7 +31,7 @@ class Rock:
         return self.pieceShape
 
     def set_random_position(self, max_value):
-        return random.randint(5, max_value)
+        return random.randint(10, max_value)
 
     def set_random_shape(self, max_value):
         return random.randint(1, max_value)
@@ -47,8 +49,8 @@ class Rock:
         pass
 
     def set_speed(self, new_speed):
-        self.speed = new_speed
+        self.__speed = new_speed
 
     @property
     def rock_speed(self):
-        return self.speed
+        return self.__speed

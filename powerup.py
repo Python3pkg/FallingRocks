@@ -43,4 +43,4 @@ class Powerup:
             self.duration = PowerupDuration.medium
 
     def set_random_position(self, max_value):
-        return random.randint(1, max_value)
+        return random.randint(10, max_value)

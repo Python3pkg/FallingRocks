@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, \
 from PyQt5.QtGui import QIcon, QPixmap, QPalette
 from powerup import PowerupDuration, PowerupType, PowerupTimeInterval
 import subprocess
-import sys
+# import sys
 
 
 class UserInterface:
@@ -89,6 +89,7 @@ class MainWindow(QMainWindow):
         # sys.exit(UserInterface.app.exec_())
 
         # UserInterface.app.exec_()
+        self.game.reset_game_values()
         self.exit_game()
         subprocess.call("python" + " falling_rocks.py", shell=True)
 
@@ -166,9 +167,9 @@ class FieldUI(QFrame):
         self.shoot_rocks_timer.start(int(PowerupTimeInterval.
                                      medium), self)
         self.bullet_timer.start(self.game.bullet_speed, self)
-        if self.game.is_paused:
-            pass
-            # self.powerup_duration_timer.stop()
+        # if self.game.is_paused:
+        #     pass
+        # self.powerup_duration_timer.stop()
 
     def stop_timers(self):
         self.game_timer.stop()
@@ -193,16 +194,34 @@ class FieldUI(QFrame):
         self.com.exit.connect(self.main_window.exit_game)
 
     # def restart_game(self):
-    #     pass
+    #     self.game.reset_game_values()
     #     # self.close()
     #     # sys.exit(UserInterface.app.exec_())
     #     # UserInterface.app.exec_()
     #     subprocess.call("python" + " falling_rocks.py", shell=True)
 
     def timerEvent(self, event):
+        self.powerups_timer_events(event)
+        self.gameplay_timer_events(event)
+        if event.timerId() == self.ticker_timer.timerId():
+            self.ticker["value"] -= 1
+            print("ticker ", self.ticker)
+            if self.ticker["type"] == "player_invincibility":
+                self.show_player_invincibility_info(self.ticker["value"])
+            if self.ticker["type"] == "slow_down_rocks":
+                self.show_slow_down_rocks_info(self.ticker["value"])
+            if self.ticker["type"] == "shoot_rocks":
+                self.show_shoot_rocks_info(self.ticker["value"])
+                self.bullet_ui = BulletUI(self, self.game, self.player_ui)
+                self.bullets.append(self.bullet_ui)
+            # self.show_slow_down_rocks_info(self.ticker)
+        else:
+            super(FieldUI, self).timerEvent(event)
+
+    def gameplay_timer_events(self, event):
         if event.timerId() == self.game_timer.timerId():
             # self.rock_ui = RockUI(self.main_window, self.game)
-            self.rock_ui = RockUI(self.game)
+            self.rock_ui = RockUI(self, self.game)
             self.rocks.append(self.rock_ui)
             # self.drop_down_rocks()
 
@@ -223,13 +242,18 @@ class FieldUI(QFrame):
             # self.start_timers()
             self.game_timer.start(self.game.game_speed, self)
             self.rock_timer.start(self.game.rock_speed, self)
-        elif event.timerId() == self.player_invincibility_timer.timerId():
+        elif event.timerId() == self.bullet_timer.timerId():
+            if self.bullets.count != 0:
+                self.shoot_bullets()
+
+    def powerups_timer_events(self, event):
+        if event.timerId() == self.player_invincibility_timer.timerId():
             # self.powerup_duration_timer.start(int(PowerupDuration.medium))
             # self.powerup_duration_timer.timeout.connect(self.
             #                                             stop_powerup_timer)
             # self.powerup_duration_timer.setSingleShot(True)
             self.powerup_timer.start(self.game.rock_speed, self)
-            self.powerup_ui = PowerupUI(self.game, PowerupType.
+            self.powerup_ui = PowerupUI(self, self.game, PowerupType.
                                         player_invinciblility)
 
             self.powerups.append(self.powerup_ui)
@@ -237,33 +261,18 @@ class FieldUI(QFrame):
         elif event.timerId() == self.big_bomb_timer.timerId():
             # self.remove_all_rocks()
             self.powerup_timer.start(self.game.rock_speed, self)
-            self.powerup_ui = PowerupUI(self.game, PowerupType.big_bomb)
+            self.powerup_ui = PowerupUI(self, self.game, PowerupType.big_bomb)
             self.powerups.append(self.powerup_ui)
         elif event.timerId() == self.slow_down_rocks_timer.timerId():
             self.powerup_timer.start(self.game.rock_speed, self)
-            self.powerup_ui = PowerupUI(self.game, PowerupType.slow_down_rocks)
+            self.powerup_ui = PowerupUI(self, self.game,
+                                        PowerupType.slow_down_rocks)
             self.powerups.append(self.powerup_ui)
         elif event.timerId() == self.shoot_rocks_timer.timerId():
             self.powerup_timer.start(self.game.rock_speed, self)
-            self.powerup_ui = PowerupUI(self.game, PowerupType.shoot_rocks)
+            self.powerup_ui = PowerupUI(self, self.game,
+                                        PowerupType.shoot_rocks)
             self.powerups.append(self.powerup_ui)
-        elif event.timerId() == self.ticker_timer.timerId():
-            self.ticker["value"] -= 1
-            print("ticker ", self.ticker)
-            if self.ticker["type"] == "player_invincibility":
-                self.show_player_invincibility_info(self.ticker["value"])
-            if self.ticker["type"] == "slow_down_rocks":
-                self.show_slow_down_rocks_info(self.ticker["value"])
-            if self.ticker["type"] == "shoot_rocks":
-                self.show_shoot_rocks_info(self.ticker["value"])
-                self.bullet_ui = BulletUI(self.game, self.player_ui)
-                self.bullets.append(self.bullet_ui)
-            # self.show_slow_down_rocks_info(self.ticker)
-        elif event.timerId() == self.bullet_timer.timerId():
-            if self.bullets.count != 0:
-                self.shoot_bullets()
-        else:
-            super(FieldUI, self).timerEvent(event)
 
     def drop_down_powerups(self):
         temp_powerup = None
@@ -299,7 +308,7 @@ class FieldUI(QFrame):
         #          str(int(PowerupDuration.medium) // 1000) +
         #          " seconds")
         self.ticker = {"type": "slow_down_rocks",
-                       "value": int(PowerupDuration.medium) // 1000}
+                       "value": int(PowerupDuration.small) // 1000}
         self.show_slow_down_rocks_info(self.ticker["value"])
         self.ticker_timer.start(1000, self)
 
@@ -309,7 +318,7 @@ class FieldUI(QFrame):
         #     connect(self.stop_slow_down_rocks)
         self.powerup_duration_timer.setSingleShot(True)
         self.powerup_duration_timer.singleShot(
-            int(PowerupDuration.medium), self.stop_slow_down_rocks)
+            int(PowerupDuration.small), self.stop_slow_down_rocks)
 
     def show_slow_down_rocks_info(self, value):
         # value = value // 1000
@@ -348,13 +357,13 @@ class FieldUI(QFrame):
         # self.bullet_timer.start(self.game.bullet_speed, self)
 
         self.ticker = {"type": "shoot_rocks",
-                       "value": int(PowerupDuration.medium) // 1000}
+                       "value": int(PowerupDuration.small) // 1000}
         self.show_slow_down_rocks_info(self.ticker["value"])
         self.ticker_timer.start(1000, self)
 
         self.powerup_duration_timer.setSingleShot(True)
         self.powerup_duration_timer.singleShot(
-            int(PowerupDuration.medium), self.stop_shoot_rocks)
+            int(PowerupDuration.small), self.stop_shoot_rocks)
 
     def show_shoot_rocks_info(self, value):
         # value = value // 1000
@@ -425,7 +434,7 @@ class FieldUI(QFrame):
     def drop_down_rocks(self):
         temp_rock = None
         for rock in self.rocks:
-            if(rock.y >= self.game.dimensions[1] - rock.height):
+            if(rock.y >= self.game.dimensions[1] - rock.height - 15):
                 # print("die")
                 temp_rock = rock
             else:
@@ -435,6 +444,7 @@ class FieldUI(QFrame):
                 print("rock_collision_detected",
                       self.player_ui.is_player_invincible)
                 self.stop_timers()
+                self.game.lose()
                 self.main_window.communicate.message_statusbar.\
                     emit("Game Over")
         if temp_rock is not None:
@@ -454,7 +464,11 @@ class FieldUI(QFrame):
         #     return
 
         key = event.key()
-        if key == Qt.Key_P:
+        if key == Qt.Key_Escape:
+            self.com.exit.emit()
+        elif self.game.is_lost:
+            return
+        elif key == Qt.Key_P:
             # self.game.pause()
             print("p pressed")
             self.pause()
@@ -467,8 +481,6 @@ class FieldUI(QFrame):
             self.com.move_right.emit()
         elif key == Qt.Key_R:
             self.com.restart.emit()
-        elif key == Qt.Key_Escape:
-            self.com.exit.emit()
 
     def pause(self):
         # if not self.game.isStarted:
@@ -491,20 +503,80 @@ class FieldUI(QFrame):
         self.update()
 
 
-class BulletUI(QWidget):
-    def __init__(self, game, player_ui):
-        self.main_window = UserInterface.get_main_window()
-        super().__init__(self.main_window)
-        self.setParent = self.main_window
-    # def __init__(self, parent, game, player_ui):
-    #     super().__init__(parent)
-    #     self.game = game
-    #     self.main_window = parent
+class ShapeUI(QWidget):
+    def __init__(self, parent, game):
+        super().__init__(parent)
         self.game = game
-        self.bullet = self.game.bullet
-        self.player_ui = player_ui
+        self.main_window = parent
+        self.image_height_fix = 0
+        self.shape = None
+
         self.field_width = self.game.dimensions[0]
         self.field_height = self.game.dimensions[1]
+
+    def set_shape_size(self):
+        self.label = QLabel(self)
+        self.myScaledPixmap = self.pixmap.scaled(self.label.size(),
+                                                 Qt.KeepAspectRatio)
+        self.label.setPixmap(self.myScaledPixmap)
+        self.image_size = (self.pixmap.width(), self.pixmap.height())
+        self.width = self.pixmap.width()
+        self.height = self.pixmap.height()
+        # print(self.width, self.height, type(self.width))
+        # print(self.image_size)
+        self.label.setFixedHeight(self.image_size[1] - self.image_height_fix)
+        self.label.setFixedWidth(self.image_size[0])
+        self.label.setScaledContents(True)
+
+    # def set_shape_size(self):
+    #     self.label = QLabel(self)
+    #     self.myScaledPixmap = self.pixmap.scaled(self.label.size(),
+    #                                              Qt.KeepAspectRatio)
+    #     self.label.setPixmap(self.pixmap)
+    #     self.image_size = (self.pixmap.width(), self.pixmap.height())
+    #     self.width = self.pixmap.width()
+    #     self.height = self.pixmap.height()
+    #     # print(self.width, self.height, type(self.width))
+    #     # print(self.image_size)
+    #     self.label.setFixedHeight(self.image_size[1] - 10)
+    #     self.label.setFixedWidth(self.image_size[0])
+    #     self.label.setScaledContents(True)
+
+    def set_random_position(self):
+        # self.random_coords = random.randint(1, self.field_width - 1)
+        self.random_coords = self.shape.\
+            set_random_position(self.field_width - 15)
+        # for rock in self.game.rocks:
+        #     if rock
+
+        # print(self.random_coords)
+        self.x = self.random_coords + 1
+        # self.curY = self.field_height - 1 + self.image_size[1]
+        self.y = 1
+
+        self.move(self.x, self.y)
+        # self.drop_down()
+        self.update()
+
+    def remove_shape(self):
+        self.hide()
+        self.destroy()
+
+
+class BulletUI(ShapeUI):
+    # def __init__(self, game, player_ui):
+    #     self.main_window = UserInterface.get_main_window()
+    #     super().__init__(self.main_window)
+    #     self.setParent = self.main_window
+    def __init__(self, parent, game, player_ui):
+        super().__init__(parent, game)
+        self.game = game
+        # self.main_window = parent
+        # self.bullet = self.game.bullet
+        self.player_ui = player_ui
+        # self.field_width = self.game.dimensions[0]
+        # self.field_height = self.game.dimensions[1]
+        self.image_height_fix = 5
 
         self.pixmap = QPixmap("images/bullet.png")
 
@@ -515,19 +587,19 @@ class BulletUI(QWidget):
         self.set_position()
         self.show()
 
-    def set_shape_size(self):
-        self.label = QLabel(self)
-        self.myScaledPixmap = self.pixmap.scaled(self.label.size(),
-                                                 Qt.KeepAspectRatio)
-        self.label.setPixmap(self.pixmap)
-        self.image_size = (self.pixmap.width(), self.pixmap.height())
-        self.width = self.pixmap.width()
-        self.height = self.pixmap.height()
-        # print(self.width, self.height, type(self.width))
-        # print(self.image_size)
-        self.label.setFixedHeight(self.image_size[1])
-        self.label.setFixedWidth(self.image_size[0])
-        self.label.setScaledContents(True)
+    # def set_shape_size(self):
+    #     self.label = QLabel(self)
+    #     self.myScaledPixmap = self.pixmap.scaled(self.label.size(),
+    #                                              Qt.KeepAspectRatio)
+    #     self.label.setPixmap(self.pixmap)
+    #     self.image_size = (self.pixmap.width(), self.pixmap.height())
+    #     self.width = self.pixmap.width()
+    #     self.height = self.pixmap.height()
+    #     # print(self.width, self.height, type(self.width))
+    #     # print(self.image_size)
+    #     self.label.setFixedHeight(self.image_size[1] - 5)
+    #     self.label.setFixedWidth(self.image_size[0])
+    #     self.label.setScaledContents(True)
 
     def set_position(self):
         # self.x = self.random_coords + 1
@@ -544,23 +616,27 @@ class BulletUI(QWidget):
         self.y -= 5
         self.move(self.x, self.y)
 
-    def remove_shape(self):
-        self.hide()
-        self.destroy()
+    # def remove_shape(self):
+    #     self.hide()
+    #     self.destroy()
 
 
-class RockUI(QWidget):
-    # def __init__(self, parent, game):
-    #     super().__init__(parent)
-    def __init__(self, game):
-        self.main_window = UserInterface.get_main_window()
-        super().__init__(self.main_window)
-        self.setParent = self.main_window
+class RockUI(ShapeUI):
+    def __init__(self, parent, game):
+        super().__init__(parent, game)
+
+    # def __init__(self, game):
+    #     self.main_window = UserInterface.get_main_window()
+    #     super().__init__(self.main_window)
+    #     self.setParent = self.main_window
         self.rock_shape_number = 8
-        self.game = game
+        self.image_height_fix = 10
+        # self.game = game
+        # self.main_window = parent
         self.rock = self.game.rock
-        self.field_width = self.game.dimensions[0]
-        self.field_height = self.game.dimensions[1]
+        self.shape = self.rock
+        # self.field_width = self.game.dimensions[0]
+        # self.field_height = self.game.dimensions[1]
 
         self.set_random_shape()
         # self.pixmap = QPixmap("images/rock5.png")
@@ -572,19 +648,19 @@ class RockUI(QWidget):
         self.set_random_position()
         self.show()
 
-    def set_shape_size(self):
-        self.label = QLabel(self)
-        self.myScaledPixmap = self.pixmap.scaled(self.label.size(),
-                                                 Qt.KeepAspectRatio)
-        self.label.setPixmap(self.pixmap)
-        self.image_size = (self.pixmap.width(), self.pixmap.height())
-        self.width = self.pixmap.width()
-        self.height = self.pixmap.height()
-        # print(self.width, self.height, type(self.width))
-        # print(self.image_size)
-        self.label.setFixedHeight(self.image_size[1] - 10)
-        self.label.setFixedWidth(self.image_size[0])
-        self.label.setScaledContents(True)
+    # def set_shape_size(self):
+    #     self.label = QLabel(self)
+    #     self.myScaledPixmap = self.pixmap.scaled(self.label.size(),
+    #                                              Qt.KeepAspectRatio)
+    #     self.label.setPixmap(self.pixmap)
+    #     self.image_size = (self.pixmap.width(), self.pixmap.height())
+    #     self.width = self.pixmap.width()
+    #     self.height = self.pixmap.height()
+    #     # print(self.width, self.height, type(self.width))
+    #     # print(self.image_size)
+    #     self.label.setFixedHeight(self.image_size[1] - 10)
+    #     self.label.setFixedWidth(self.image_size[0])
+    #     self.label.setScaledContents(True)
 
         # hbox.addWidget(lbl)
 
@@ -598,42 +674,48 @@ class RockUI(QWidget):
             set_random_shape(self.rock_shape_number)
         self.pixmap = QPixmap("images/rock" + str(self.random_shape) + ".png")
 
-    def set_random_position(self):
-        # self.random_coords = random.randint(1, self.field_width - 1)
-        self.random_coords = self.rock.\
-            set_random_position(self.field_width - 5)
-        # for rock in self.game.rocks:
-        #     if rock
+    # def set_random_position(self):
+    #     # self.random_coords = random.randint(1, self.field_width - 1)
+    #     self.random_coords = self.rock.\
+    #         set_random_position(self.field_width - 5)
+    #     # for rock in self.game.rocks:
+    #     #     if rock
 
-        # print(self.random_coords)
-        self.x = self.random_coords + 1
-        # self.curY = self.field_height - 1 + self.image_size[1]
-        self.y = 1
+    #     # print(self.random_coords)
+    #     self.x = self.random_coords + 1
+    #     # self.curY = self.field_height - 1 + self.image_size[1]
+    #     self.y = 1
 
-        self.move(self.x, self.y)
-        # self.drop_down()
-        self.update()
+    #     self.move(self.x, self.y)
+    #     # self.drop_down()
+    #     self.update()
 
     def drop_down(self):
         self.y += 5
         self.move(self.x, self.y)
 
-    def remove_shape(self):
-        self.hide()
-        self.destroy()
+    # def remove_shape(self):
+    #     self.hide()
+    #     self.destroy()
 
 
-class PowerupUI(QWidget):
-    def __init__(self, game, type):
-        self.main_window = UserInterface.get_main_window()
-        super().__init__(self.main_window)
-        self.setParent = self.main_window
-        self.game = game
+class PowerupUI(ShapeUI):
+    # def __init__(self, game, type):
+    #     self.main_window = UserInterface.get_main_window()
+    #     super().__init__(self.main_window)
+    #     self.setParent = self.main_window
+    def __init__(self, parent, game, type):
+        # super().__init__(parent)
+        super().__init__(parent, game)
+        # self.main_window = parent
+        # self.game = game
         self.type = type
+        self.image_height_fix = 5
         print(self.type)
-        self.field_width = self.game.dimensions[0]
-        self.field_height = self.game.dimensions[1]
+        # self.field_width = self.game.dimensions[0]
+        # self.field_height = self.game.dimensions[1]
         self.powerup = self.game.powerup
+        self.shape = self.powerup
 
         # self.pixmap = QPixmap("images/smile3.png")
         self.set_shape(self.type)
@@ -659,62 +741,64 @@ class PowerupUI(QWidget):
             self.pixmap = QPixmap("images/shoot_rocks.png")
             # print("powerup shape set")
 
-    def set_random_position(self):
-        # self.random_coords = random.randint(1, self.field_width - 1)
-        self.random_coords = self.powerup.\
-            set_random_position(self.field_width - 1)
-        # for rock in self.game.rocks:
-        #     if rock
+    # def set_random_position(self):
+    #     # self.random_coords = random.randint(1, self.field_width - 1)
+    #     self.random_coords = self.powerup.\
+    #         set_random_position(self.field_width - 1)
+    #     # for rock in self.game.rocks:
+    #     #     if rock
 
-        # print(self.random_coords)
-        self.x = self.random_coords + 1
-        # self.curY = self.field_height - 1 + self.image_size[1]
-        self.y = 1
+    #     # print(self.random_coords)
+    #     self.x = self.random_coords + 1
+    #     # self.curY = self.field_height - 1 + self.image_size[1]
+    #     self.y = 1
 
-        self.move(self.x, self.y)
-        # self.drop_down()
-        self.update()
-        # print("powerup position set", self.x, self.y)
+    #     self.move(self.x, self.y)
+    #     # self.drop_down()
+    #     self.update()
+    #     # print("powerup position set", self.x, self.y)
 
     def drop_down(self):
         self.y += 5
         self.move(self.x, self.y)
         # print("powerup moved")
 
-    def remove_shape(self):
-        self.hide()
-        self.destroy()
+    # def remove_shape(self):
+    #     self.hide()
+    #     self.destroy()
 
     # def set_initial_position(self):
     #     self.x = self.field_width / 2 - self.image_size[0]
     #     self.y = self.field_height - 50
     #     self.move(self.x, self.y)
 
-    def set_shape_size(self):
-        self.label = QLabel(self)
-        # self.myScaledPixmap = self.pixmap.scaled(self.label.size(),
-        #                                          Qt.KeepAspectRatio)
-        self.label.setPixmap(self.pixmap)
-        self.image_size = (self.pixmap.width(), self.pixmap.height())
-        self.width = self.pixmap.width()
-        self.height = self.pixmap.height()
-        # print(self.width, self.height, type(self.width))
-        # print(self.image_size)
-        self.label.setFixedHeight(self.image_size[1] - 5)
-        self.label.setFixedWidth(self.image_size[0])
-        # self.label.setScaledContents(True)
+    # def set_shape_size(self):
+    #     self.label = QLabel(self)
+    #     # self.myScaledPixmap = self.pixmap.scaled(self.label.size(),
+    #     #                                          Qt.KeepAspectRatio)
+    #     self.label.setPixmap(self.pixmap)
+    #     self.image_size = (self.pixmap.width(), self.pixmap.height())
+    #     self.width = self.pixmap.width()
+    #     self.height = self.pixmap.height()
+    #     # print(self.width, self.height, type(self.width))
+    #     # print(self.image_size)
+    #     self.label.setFixedHeight(self.image_size[1] - 5)
+    #     self.label.setFixedWidth(self.image_size[0])
+    #     # self.label.setScaledContents(True)
 
 
-class PlayerUI(QWidget):
+class PlayerUI(ShapeUI):
     def __init__(self, parent, game):
-        super().__init__(parent)
-        self.game = game
+        super().__init__(parent, game)
+        # self.main_window = parent
+        # self.game = game
         self.player = game.player
         self.speed = game.player_speed
-        self.field_width = self.game.dimensions[0]
-        self.field_height = self.game.dimensions[1]
+        # self.field_width = self.game.dimensions[0]
+        # self.field_height = self.game.dimensions[1]
 
         self.pixmap = QPixmap("images/smile3.png")
+        self.image_height_fix = 48  # 48
         # self.pixmap = QPixmap("smile2.jpg")
 
         self.width = self.pixmap.width()
@@ -744,16 +828,16 @@ class PlayerUI(QWidget):
         self.y = self.field_height - 50
         self.move(self.x, self.y)
 
-    def set_shape_size(self):
-        self.label = QLabel(self)
-        self.myScaledPixmap = self.pixmap.scaled(self.label.size(),
-                                                 Qt.KeepAspectRatio)
-        self.label.setPixmap(self.myScaledPixmap)
-        self.image_size = (self.pixmap.width(), self.pixmap.height())
-        # print(self.image_size)
-        self.label.setFixedHeight(self.image_size[1] - 48)
-        self.label.setFixedWidth(self.image_size[0])
-        self.label.setScaledContents(True)
+    # def set_shape_size(self):
+    #     self.label = QLabel(self)
+    #     self.myScaledPixmap = self.pixmap.scaled(self.label.size(),
+    #                                              Qt.KeepAspectRatio)
+    #     self.label.setPixmap(self.myScaledPixmap)
+    #     self.image_size = (self.pixmap.width(), self.pixmap.height())
+    #     # print(self.image_size)
+    #     self.label.setFixedHeight(self.image_size[1] - 48)
+    #     self.label.setFixedWidth(self.image_size[0])
+    #     self.label.setScaledContents(True)
 
         # hbox.addWidget(lbl)
 

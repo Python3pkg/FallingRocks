@@ -14,7 +14,7 @@ class Game:
     def __init__(self, field):
         self.field = field
         self.__state = State.running
-        self.__game_speed = 630
+        self.__game_speed = 630  # 630
         self.__level_speed = 30000
         self.__level = 1
 
@@ -46,12 +46,17 @@ class Game:
     def level_up(self):
         self.__level += 1
 
+    def lose(self):
+        self.__state = State.lost
+
     def collision_detected(self, rect1, rect2):
         dx = (rect1.x + rect1.width / 2) - (rect2.x + rect2.width / 2)
         dy = (rect1.y + rect1.height / 2) - (rect2.y + rect2.height / 2)
         distance = sqrt(dx * dx + dy * dy)
         return distance < (rect1.width + rect2.width) / 2 - 4 or \
-            distance < (rect1.height + rect2.height) / 2 - 10
+            distance < (rect1.height + rect2.height) / 2 - 8
+        # return distance < (rect1.width + rect2.width) / 2 - 4 or \
+        #     distance < (rect1.height + rect2.height) / 2 - 10
 
         # cond1 = (abs(object1.x - object2.x) * 2 < (object1.width +
         #          object2.width))
@@ -125,3 +130,10 @@ class Game:
     @property
     def bullet_speed(self):
         return self.field.bullet_speed
+
+    def reset_game_values(self):
+        self.__game_speed = 630  # 630
+        self.__level_speed = 30000
+        self.__level = 1
+        self.field.set_rock_speed(50)
+
