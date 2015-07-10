@@ -16,52 +16,50 @@ class Field:
         self.__powerup = Powerup(PowerupType.no_powerup)
         self.__bullet = Bullet()
 
-    def clear_field(self):
-        pass
-
-    def get_object(self, x, y):
-        return self.field[(y * self.width) + x]
-
     # def set_rock_at_positon(self, x, y, rock):
     #     self.field[(y * self.width) + x] = rock
 
-    def generate_powerup(self, position):
-        pass
+    # def generate_powerup(self, position):
+    #     pass
 
-    def generate_rock(self, position):
-        pass
+    # def generate_rock(self, position):
+    #     pass
 
     def set_rock_speed(self, new_speed):
+        """Sets the rock's speed to the value of new_speed."""
         self.rock.set_speed(new_speed)
 
     @property
     def rock_speed(self):
+        """Gets the rock's speed."""
         return self.__rock.rock_speed
 
     @property
     def player_speed(self):
+        """Gets the player's speed."""
         return self.__player.player_speed
 
     @property
     def player(self):
+        """Gets the player's object."""
         return self.__player
 
     @property
     def rock(self):
+        """Gets the rock's object."""
         return self.__rock
 
     @property
     def powerup(self):
+        """Gets the powerup's object."""
         return self.__powerup
 
     @property
     def bullet(self):
+        """Gets the bullet's speed."""
         return self.__bullet
 
     @property
     def bullet_speed(self):
+        """Gets the bullet's speed."""
         return self.__bullet.bullet_speed
-
-    @property
-    def player_invincibility_time(self):
-        return self.__player.player_invincibility_time

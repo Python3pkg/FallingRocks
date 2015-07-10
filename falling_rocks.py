@@ -4,6 +4,7 @@ import gui
 
 
 def main():
+    """Initializes the game, ui and field and starts the game loop"""
     field = Field(1080, 800)
     game = Game(field)
     ui = gui.UserInterface(game)

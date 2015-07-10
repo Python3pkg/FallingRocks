@@ -20,6 +20,7 @@ class PowerupDuration(IntEnum):
 
 class PowerupTimeInterval(IntEnum):
     no_time_interval = 0
+    second = 1000
     small = 12413
     medium = 34847
     big = 47093
@@ -34,7 +35,7 @@ class Powerup:
         # self.ticker = 0
 
     def set_duration(self, powerup_type):
-        # self.duration = new_duration
+        """Sets the duration of powerup types."""
         if powerup_type == PowerupType.invinciblility:
             self.duration = PowerupDuration.small
         elif powerup_type == PowerupType.big_bomb:
@@ -43,4 +44,7 @@ class Powerup:
             self.duration = PowerupDuration.medium
 
     def set_random_position(self, max_value):
+        """Sets a random number from 10 to max_value which is used for setting
+        the position of the powerup.
+        """
         return random.randint(10, max_value)
