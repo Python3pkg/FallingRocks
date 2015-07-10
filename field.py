@@ -27,7 +27,7 @@ class Field:
 
     def set_rock_speed(self, new_speed):
         """Sets the rock's speed to the value of new_speed."""
-        self.rock.set_speed(new_speed)
+        self.__rock.set_speed(new_speed)
 
     @property
     def rock_speed(self):
@@ -38,6 +38,11 @@ class Field:
     def player_speed(self):
         """Gets the player's speed."""
         return self.__player.player_speed
+
+    @property
+    def bullet_speed(self):
+        """Gets the bullet's speed."""
+        return self.__bullet.bullet_speed
 
     @property
     def player(self):
@@ -58,8 +63,3 @@ class Field:
     def bullet(self):
         """Gets the bullet's speed."""
         return self.__bullet
-
-    @property
-    def bullet_speed(self):
-        """Gets the bullet's speed."""
-        return self.__bullet.bullet_speed
