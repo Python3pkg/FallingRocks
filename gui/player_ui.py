@@ -44,7 +44,6 @@ class PlayerUI(ShapeUI):
         """Moves the player to the left and checks if the move is valid
         (if the move is out of the game field).
         """
-        print("left")
         if(self.x - self.speed > 0):
             self.x -= self.speed
             self.move(self.x, self.y)
@@ -54,7 +53,6 @@ class PlayerUI(ShapeUI):
         """Moves the player to the right and checks if the move is valid
         (if the move is out of the game field).
         """
-        print("right")
         if(self.x + self.speed < self.field_width -
            self.image_size[0]):
             self.x += self.speed
