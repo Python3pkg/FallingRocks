@@ -6,6 +6,7 @@ from field import Field
 from game import Game
 from gui.user_interface import UserInterface
 from gui.bullet_ui import BulletUI
+from gui.powerup_ui import PowerupUI, PowerupType
 
 
 class RockTest(unittest.TestCase):
@@ -200,7 +201,7 @@ class GUITest(unittest.TestCase):
         self.assertEqual(1080, main_window_height)
         self.assertEqual(800, main_window_width)
 
-    def test_moving_to_target(self):
+    def test_bullet_moving_to_target(self):
         self.field_ui = GUITest.main_window.field_ui
         self.player_ui = self.field_ui.player_ui
         self.bullet_ui = BulletUI(GUITest.main_window,
@@ -228,6 +229,14 @@ class GUITest(unittest.TestCase):
     def test_check_winning_the_game(self):
         GUITest.main_window.field_ui.win_the_game()
         self.assertEqual(True, GUITest.game.is_won)
+
+    def test_check_powerup_dropping_down(self):
+        self.field_ui = GUITest.main_window.field_ui
+        self.powerup_ui = PowerupUI(GUITest.main_window, GUITest.game,
+                                    PowerupType.player_invinciblility)
+        initial_y = self.powerup_ui.y
+        self.powerup_ui.drop_down()
+        self.assertLess(initial_y, self.powerup_ui.y)
 
 if __name__ == '__main__':
     unittest.main()
