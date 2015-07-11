@@ -8,7 +8,6 @@ class PowerupUI(ShapeUI):
         super().__init__(parent, game)
         self.type = type
         self.image_height_fix = 5
-        print(self.type)
         self.powerup = self.game.powerup
         self.shape = self.powerup
 
@@ -38,7 +37,6 @@ class PowerupUI(ShapeUI):
         self.move(self.x, self.y)
 
     def set_duration(self):
-        print(self.type)
         self.powerup.set_duration(self.type)
 
     @property
