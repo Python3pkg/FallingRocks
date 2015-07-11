@@ -13,8 +13,11 @@ class State(Enum):
 class Game:
     def __init__(self, field):
         self.field = field
+        self.init_game_variables()
+
+    def init_game_variables(self):
         self.__state = State.running
-        self.__game_speed = 630  # 630
+        self.__game_speed = 630
         self.__level_speed = 30000
         self.__level = 1
 
@@ -29,6 +32,11 @@ class Game:
         return self.__state is State.lost
 
     @property
+    def is_won(self):
+        """Checks if the game is won."""
+        return self.__state is State.won
+
+    @property
     def is_paused(self):
         """Checks if the game is paused."""
         return self.__state is State.paused
@@ -41,6 +49,10 @@ class Game:
     def lose(self):
         """Loses the game."""
         self.__state = State.lost
+
+    def win(self):
+        """Wins the game."""
+        self.__state = State.won
 
     def pause(self):
         """Sets the game's state to paused."""
@@ -66,22 +78,6 @@ class Game:
         distance = sqrt(dx * dx + dy * dy)
         return distance < (object1.width + object2.width) / 2 - 4 or \
             distance < (object1.height + object2.height) / 2 - 8
-        # return distance < (object1.width + object2.width) / 2 - 4 or \
-        #     distance < (object1.height + object2.height) / 2 - 10
-
-        # cond1 = (abs(object1.x - object2.x) * 2 < (object1.width +
-        #          object2.width))
-        # cond2 = (abs(object1.y - object2.y) * 2 <
-        #          (object1.height + object2.height - 10))
-        # print(cond1, cond2)
-        # return (abs(object1.x - object2.x) * 2 < (object1.width +
-        #         object2.width)) and (abs(object1.y - object2.y) * 2 <
-        #                              (object1.height + object2.height - 10))
-
-        # return (object1.x < object2.x + object2.width - 10 and
-        #         object1.x + object1.width > object2.x and
-        #         object1.y < object2.y + object2.height - 10 and
-        #         object1.height + object1.y > object2.y)
 
     @property
     def game_speed(self):
@@ -156,7 +152,9 @@ class Game:
         """Resets the speed of the game, level and rocks and sets the level to
         1.
         """
-        self.__game_speed = 630  # 630
-        self.__level_speed = 30000
-        self.__level = 1
+        self.init_game_variables()
         self.field.set_rock_speed(50)
+
+    def set_speed_after_levelup(self):
+        self.set_rock_speed(self.rock_speed - 2)
+        self.set_speed(self.game_speed - 27)

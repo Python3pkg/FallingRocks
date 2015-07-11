@@ -11,19 +11,9 @@ class Field:
         self.powerups = []
         self.bullets = []
         self.__player = Player()
-        # self.field = []
         self.__rock = Rock()
         self.__powerup = Powerup(PowerupType.no_powerup)
         self.__bullet = Bullet()
-
-    # def set_rock_at_positon(self, x, y, rock):
-    #     self.field[(y * self.width) + x] = rock
-
-    # def generate_powerup(self, position):
-    #     pass
-
-    # def generate_rock(self, position):
-    #     pass
 
     def set_rock_speed(self, new_speed):
         """Sets the rock's speed to the value of new_speed."""
