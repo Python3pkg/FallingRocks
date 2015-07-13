@@ -22,7 +22,8 @@ class RockUI(ShapeUI):
         """Sets a random shape of the rock."""
         self.random_shape = self.rock.\
             set_random_shape(self.rock_shape_number)
-        self.pixmap = QPixmap("images/rock" + str(self.random_shape) + ".png")
+        self.pixmap = QPixmap("../images/rock" + str(self.random_shape) +
+                              ".png")
 
     def drop_down(self):
         """Moves the rock down."""

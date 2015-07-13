@@ -8,7 +8,7 @@ class BulletUI(ShapeUI):
         self.player_ui = player_ui
         self.image_height_fix = 5
 
-        self.pixmap = QPixmap("images/bullet.png")
+        self.pixmap = QPixmap("../images/bullet.png")
 
         self.set_shape_size()
 

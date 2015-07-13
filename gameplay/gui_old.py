@@ -1,17 +1,14 @@
 import subprocess
-from PyQt5.QtCore import Qt, QBasicTimer, QTimer
+from PyQt5.QtCore import QObject, Qt, pyqtSignal, pyqtSlot, QBasicTimer, QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, \
-    QDesktopWidget
-from PyQt5.QtGui import QIcon, QPalette
-from gameplay.powerup import PowerupType, PowerupTimeInterval
-from gui.rock_ui import RockUI
-from gui.bullet_ui import BulletUI
-from gui.powerup_ui import PowerupUI
-from gui.player_ui import PlayerUI
-from gui.communicate import Communicate
+    QDesktopWidget, QWidget, QLabel
+from PyQt5.QtGui import QIcon, QPixmap, QPalette
+from powerup import PowerupType, PowerupTimeInterval
 
 
 class UserInterface:
+    main_window = None
+
     def __init__(self, game):
         self.game = game
 
@@ -46,11 +43,14 @@ class MainWindow(QMainWindow):
         self.field_ui = FieldUI(self, self.game)
 
         self.set_background_color()
+
         self.set_dimensions()
+
         self.center_window()
+
         self.init_status_bar()
 
-        self.setWindowIcon(QIcon('../images/small_icon.png'))
+        self.setWindowIcon(QIcon('images/small_icon.png'))
         self.setWindowTitle('Falling Rocks')
         self.show()
 
@@ -91,6 +91,17 @@ class MainWindow(QMainWindow):
         subprocess.call("python" + " falling_rocks.py", shell=True)
 
 
+class Communicate(QObject):
+    def __init__(self):
+        super(Communicate, self).__init__()
+    move_left = pyqtSignal()
+    move_right = pyqtSignal()
+    pause = pyqtSignal()
+    restart = pyqtSignal()
+    exit = pyqtSignal()
+    message_statusbar = pyqtSignal(str)
+
+
 class FieldUI(QFrame):
     def __init__(self, parent, game):
         super().__init__(parent)
@@ -102,11 +113,13 @@ class FieldUI(QFrame):
         self.width, self.height = self.game.dimensions
 
         self.init_timers()
+
         self.start_timers()
 
         self.player_ui = PlayerUI(self, self.game)
 
         self.init_signals()
+
         self.setFocusPolicy(Qt.StrongFocus)
 
     def init_timers(self):
@@ -134,8 +147,10 @@ class FieldUI(QFrame):
         self.player_invincibility_timer.start(int(PowerupTimeInterval.medium),
                                               self)
         self.big_bomb_timer.start(int(PowerupTimeInterval.big), self)
-        self.slow_down_rocks_timer.start(int(PowerupTimeInterval.medium), self)
-        self.shoot_rocks_timer.start(int(PowerupTimeInterval.very_big), self)
+        self.slow_down_rocks_timer.start(int(PowerupTimeInterval.
+                                         medium), self)
+        self.shoot_rocks_timer.start(int(PowerupTimeInterval.
+                                     medium), self)
         self.bullet_timer.start(self.game.bullet_speed, self)
 
     def stop_timers(self):
@@ -163,7 +178,6 @@ class FieldUI(QFrame):
         self.com.move_right.connect(self.player_ui.move_right)
         self.com.restart.connect(self.main_window.restart_game)
         self.com.exit.connect(UserInterface.close_app)
-        self.com.win.connect(self.win_the_game)
 
     def timerEvent(self, event):
         """Gets the emitted events from the timers and calls the appropriate
@@ -173,6 +187,7 @@ class FieldUI(QFrame):
         self.gameplay_timer_events(event)
         if event.timerId() == self.ticker_timer.timerId():
             self.ticker["value"] -= 1
+            print("ticker ", self.ticker)
             if self.ticker["type"] == "player_invincibility":
                 self.show_player_invincibility_info(self.ticker["value"])
             if self.ticker["type"] == "slow_down_rocks":
@@ -199,10 +214,8 @@ class FieldUI(QFrame):
         elif event.timerId() == self.level_timer.timerId():
             self.game.level_up()
             self.game_level = self.game.level
-            if self.game_level == 21:
-                self.com.win.emit()
-                return
-            self.game.set_speed_after_levelup()
+            self.game.set_rock_speed(self.game.rock_speed - 5)
+            self.game.set_speed(self.game.game_speed - 40)
             self.main_window.communicate.message_statusbar.\
                 emit("Level " + str(self.game_level))
             self.game_timer.start(self.game.game_speed, self)
@@ -236,13 +249,6 @@ class FieldUI(QFrame):
                                         PowerupType.shoot_rocks)
             self.powerups.append(self.powerup_ui)
 
-    def win_the_game(self):
-        """Wins the game and shows an appropriate message to the player."""
-        self.game.win()
-        self.stop_timers()
-        self.main_window.communicate.message_statusbar.\
-            emit("You've won the game. You are a survivor. Well done!")
-
     def drop_down_powerups(self):
         """Moves the powerups down and check if the move is out of the game
         field. If that is true the powerups are removed from the field.
@@ -262,7 +268,10 @@ class FieldUI(QFrame):
         is true initializes the powerups' effect according to their type.
         """
         if(self.game.collision_detected(self.player_ui, powerup)):
+            print("powerup_collision_detected")
+            print(powerup.type)
             if powerup.type == PowerupType.player_invinciblility:
+                print(self.player_ui.is_player_invincible)
                 self.init_player_invincibility(powerup)
             elif powerup.type == PowerupType.big_bomb:
                 self.init_big_bomb()
@@ -275,7 +284,6 @@ class FieldUI(QFrame):
         """Initializes the powerup slow_down_rocks and it's effect of the
         game."""
         self.game.set_rock_speed(self.game.rock_speed + 3)
-        self.game.set_speed(self.game.game_speed + 25)
         self.game_timer.start(self.game.game_speed, self)
         self.rock_timer.start(self.game.rock_speed, self)
         self.ticker = {"type": "slow_down_rocks",
@@ -291,6 +299,7 @@ class FieldUI(QFrame):
         """Shows information about the powerup slow_down_rocks to the
         player.
         """
+        # value = value // 1000
         self.main_window.communicate.message_statusbar.\
             emit("The rock are slowed down for " + str(value) + " seconds")
 
@@ -301,9 +310,9 @@ class FieldUI(QFrame):
         self.powerup_duration_timer.stop()
         self.ticker_timer.stop()
         self.game.set_rock_speed(self.game.rock_speed - 3)
-        self.game.set_speed(self.game.game_speed - 25)
         self.game_timer.start(self.game.game_speed, self)
         self.rock_timer.start(self.game.rock_speed, self)
+        print("again")
         self.main_window.communicate.message_statusbar.\
             emit("The rock are no longer slowed down. Be careful!")
 
@@ -328,13 +337,15 @@ class FieldUI(QFrame):
         for rock in self.rocks:
             if self.game.collision_detected(bullet, rock):
                 self.remove_rock_from_field(rock)
+                print("bullet_collision_detected")
 
     def init_shoot_rocks(self, powerup):
         """Initializes the powerup shoot_rocks and it's effect of the game."""
         self.ticker = {"type": "shoot_rocks",
                        "value": powerup.duration // 1000}
-        self.show_shoot_rocks_info(self.ticker["value"])
+        self.show_slow_down_rocks_info(self.ticker["value"])
         self.ticker_timer.start(PowerupTimeInterval.second, self)
+
         self.powerup_duration_timer.setSingleShot(True)
         self.powerup_duration_timer.singleShot(powerup.duration,
                                                self.stop_shoot_rocks)
@@ -367,9 +378,10 @@ class FieldUI(QFrame):
         """
         if not self.player_ui.is_player_invincible:
             self.player_ui.set_player_invinciblity()
-            self.ticker = {"type": "player_invincibility",
+            print("init player", self.player_ui.is_player_invincible)
+            self.ticker = {"type": "slow_down_rocks",
                            "value": powerup.duration // 1000}
-            self.show_player_invincibility_info(self.ticker["value"])
+            self.show_slow_down_rocks_info(self.ticker["value"])
             self.ticker_timer.start(PowerupTimeInterval.second, self)
             self.powerup_duration_timer.setSingleShot(True)
             self.powerup_duration_timer.singleShot(
@@ -383,6 +395,8 @@ class FieldUI(QFrame):
         self.powerup_duration_timer.stop()
         self.ticker_timer.stop()
         self.player_ui.set_player_invinciblity()
+        print("again")
+        print(self.player_ui.is_player_invincible)
         self.main_window.communicate.message_statusbar.\
             emit("The player's invinciblility is off. You are mortal again!")
 
@@ -395,6 +409,7 @@ class FieldUI(QFrame):
 
     def remove_powerup_from_field(self, powerup):
         """Removes a powerup from the game field."""
+        print("powerup died")
         self.powerups.remove(powerup)
         powerup.remove_shape()
         if(self.powerups.count == 0):
@@ -402,6 +417,7 @@ class FieldUI(QFrame):
 
     def remove_bullet_from_field(self, bullet):
         """Removes a bullet from the game field."""
+        print("bullet died")
         self.bullets.remove(bullet)
         bullet.remove_shape()
         if(self.bullets.count == 0):
@@ -432,6 +448,8 @@ class FieldUI(QFrame):
         """
         if(not self.player_ui.is_player_invincible and
            self.game.collision_detected(self.player_ui, rock)):
+            print("rock_collision_detected",
+                  self.player_ui.is_player_invincible)
             self.stop_timers()
             self.game.lose()
             self.main_window.communicate.message_statusbar.\
@@ -442,6 +460,7 @@ class FieldUI(QFrame):
         keyboard and calls the appropriate method.
         """
         super(FieldUI, self).keyPressEvent(event)
+
         key = event.key()
         if key == Qt.Key_Escape:
             self.com.exit.emit()
@@ -450,6 +469,8 @@ class FieldUI(QFrame):
         elif self.game.is_lost:
             return
         elif key == Qt.Key_P:
+            # self.game.pause()
+            print("p pressed")
             if self.game.is_running:
                 self.pause_game()
             else:
@@ -467,12 +488,215 @@ class FieldUI(QFrame):
         if self.game.is_running:
             self.game.pause()
             self.stop_timers()
+            print("paused")
             self.main_window.communicate.message_statusbar.emit("Paused")
 
     def resume_game(self):
         """Resumes the game and shows a message to the player."""
         if self.game.is_paused:
             self.game.resume()
+            print("unpaused")
             self.start_timers()
             self.main_window.communicate.message_statusbar.emit("Running")
         self.update()
+
+
+class ShapeUI(QWidget):
+    def __init__(self, parent, game):
+        super().__init__(parent)
+        self.game = game
+        self.main_window = parent
+        self.image_height_fix = 0
+        self.shape = None
+
+        self.field_width = self.game.dimensions[0]
+        self.field_height = self.game.dimensions[1]
+
+    def set_shape_size(self):
+        """Set the size of the shape to be the same size as the it's image."""
+        self.label = QLabel(self)
+        self.myScaledPixmap = self.pixmap.scaled(self.label.size(),
+                                                 Qt.KeepAspectRatio)
+        self.label.setPixmap(self.myScaledPixmap)
+        self.image_size = (self.pixmap.width(), self.pixmap.height())
+        self.width = self.pixmap.width()
+        self.height = self.pixmap.height()
+
+        self.label.setFixedHeight(self.image_size[1] - self.image_height_fix)
+        self.label.setFixedWidth(self.image_size[0])
+        self.label.setScaledContents(True)
+
+    def set_random_position(self):
+        """Sets a random position of the shape and moves the shape there."""
+        self.random_coords = self.shape.\
+            set_random_position(self.field_width - 15)
+
+        self.x = self.random_coords + 1
+        self.y = 1
+
+        self.move(self.x, self.y)
+        self.update()
+
+    def remove_shape(self):
+        """Removes the shape from the field and destroys the shape object."""
+        self.hide()
+        self.destroy()
+
+
+class BulletUI(ShapeUI):
+    def __init__(self, parent, game, player_ui):
+        super().__init__(parent, game)
+        self.player_ui = player_ui
+        self.image_height_fix = 5
+
+        self.pixmap = QPixmap("images/bullet.png")
+
+        self.set_shape_size()
+
+        self.set_initial_position()
+        self.show()
+
+    def set_initial_position(self):
+        """Set the initial position of the bullet and moves the bullet
+        there.
+        """
+        self.x = self.player_ui.x + self.player_ui.width / 2 - 15
+        self.y = self.player_ui.y - self.player_ui.height / 2 + 15
+
+        self.move(self.x, self.y)
+
+        self.update()
+
+    def move_to_target(self):
+        """Moves the bullet up (to the tagrget)."""
+        self.y -= 5
+        self.move(self.x, self.y)
+
+
+class RockUI(ShapeUI):
+    def __init__(self, parent, game):
+        super().__init__(parent, game)
+        self.rock_shape_number = 8
+        self.image_height_fix = 10
+
+        self.rock = self.game.rock
+        self.shape = self.rock
+
+        self.set_random_shape()
+
+        self.set_shape_size()
+
+        self.set_random_position()
+        self.show()
+
+    def set_random_shape(self):
+        """Sets a random shape of the rock."""
+        self.random_shape = self.rock.\
+            set_random_shape(self.rock_shape_number)
+        self.pixmap = QPixmap("images/rock" + str(self.random_shape) + ".png")
+
+    def drop_down(self):
+        """Moves the rock down."""
+        self.y += 5
+        self.move(self.x, self.y)
+
+
+class PowerupUI(ShapeUI):
+    def __init__(self, parent, game, type):
+        super().__init__(parent, game)
+        self.type = type
+        self.image_height_fix = 5
+        print(self.type)
+        self.powerup = self.game.powerup
+        self.shape = self.powerup
+
+        self.set_duration()
+
+        self.set_shape(self.type)
+
+        self.set_shape_size()
+
+        self.set_random_position()
+        self.show()
+
+    def set_shape(self, type):
+        """Sets the shape of the powerup according to it's type."""
+        if type == PowerupType.player_invinciblility:
+            self.pixmap = QPixmap("images/invinciblility.png")
+        elif type == PowerupType.big_bomb:
+            self.pixmap = QPixmap("images/big_bomb.png")
+        elif type == PowerupType.slow_down_rocks:
+            self.pixmap = QPixmap("images/slow_down_rocks.png")
+        elif type == PowerupType.shoot_rocks:
+            self.pixmap = QPixmap("images/shoot_rocks.png")
+
+    def drop_down(self):
+        """Moves the powerup down."""
+        self.y += 5
+        self.move(self.x, self.y)
+
+    def set_duration(self):
+        print(self.type)
+        self.powerup.set_duration(self.type)
+
+    @property
+    def duration(self):
+        return self.powerup.powerup_duration
+
+
+class PlayerUI(ShapeUI):
+    def __init__(self, parent, game):
+        super().__init__(parent, game)
+        self.player = game.player
+        self.speed = game.player_speed
+
+        self.pixmap = QPixmap("images/smile3.png")
+        self.image_height_fix = 48  # 48
+
+        self.width = self.pixmap.width()
+        self.height = self.pixmap.height()
+
+        self.set_shape_size()
+
+        self.set_initial_position()
+        self.show()
+
+    def set_initial_position(self):
+        """Set the initial position of the player and moves the player
+        there.
+        """
+        self.x = (self.field_width - self.image_size[0]) / 2
+        self.y = self.field_height - 50
+        self.move(self.x, self.y)
+
+    @property
+    def is_player_invincible(self):
+        """Checks if the player is invincible"""
+        return self.player.is_player_invincible
+
+    def set_player_invinciblity(self):
+        """Sets the player's invincibility to the opposite of the current
+        value.
+        """
+        self.player.set_player_invinciblity()
+
+    @pyqtSlot()
+    def move_left(self):
+        """Moves the player to the left and checks if the move is valid
+        (if the move is out of the game field).
+        """
+        print("left")
+        if(self.x - self.speed > 0):
+            self.x -= self.speed
+            self.move(self.x, self.y)
+
+    @pyqtSlot()
+    def move_right(self):
+        """Moves the player to the right and checks if the move is valid
+        (if the move is out of the game field).
+        """
+        print("right")
+        if(self.x + self.speed < self.field_width -
+           self.image_size[0]):
+            self.x += self.speed
+            self.move(self.x, self.y)

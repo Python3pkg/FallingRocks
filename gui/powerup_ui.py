@@ -1,6 +1,6 @@
 from PyQt5.QtGui import QPixmap
 from gui.shape_ui import ShapeUI
-from powerup import PowerupType
+from gameplay.powerup import PowerupType
 
 
 class PowerupUI(ShapeUI):
@@ -23,13 +23,13 @@ class PowerupUI(ShapeUI):
     def set_shape(self, type):
         """Sets the shape of the powerup according to it's type."""
         if type == PowerupType.player_invinciblility:
-            self.pixmap = QPixmap("images/invinciblility.png")
+            self.pixmap = QPixmap("../images/invinciblility.png")
         elif type == PowerupType.big_bomb:
-            self.pixmap = QPixmap("images/big_bomb.png")
+            self.pixmap = QPixmap("../images/big_bomb.png")
         elif type == PowerupType.slow_down_rocks:
-            self.pixmap = QPixmap("images/slow_down_rocks.png")
+            self.pixmap = QPixmap("../images/slow_down_rocks.png")
         elif type == PowerupType.shoot_rocks:
-            self.pixmap = QPixmap("images/shoot_rocks.png")
+            self.pixmap = QPixmap("../images/shoot_rocks.png")
 
     def drop_down(self):
         """Moves the powerup down."""

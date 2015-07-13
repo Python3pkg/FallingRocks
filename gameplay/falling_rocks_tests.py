@@ -1,9 +1,9 @@
 import unittest
-from rock import Rock
-from player import Player
-from bullet import Bullet
-from field import Field
-from game import Game
+from gameplay.rock import Rock
+from gameplay.player import Player
+from gameplay.bullet import Bullet
+from gameplay.field import Field
+from gameplay.game import Game
 from gui.user_interface import UserInterface
 from gui.bullet_ui import BulletUI
 from gui.powerup_ui import PowerupUI, PowerupType

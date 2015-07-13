@@ -9,7 +9,7 @@ class PlayerUI(ShapeUI):
         self.player = game.player
         self.speed = game.player_speed
 
-        self.pixmap = QPixmap("images/smile.png")
+        self.pixmap = QPixmap("../images/smile.png")
         self.image_height_fix = 48
 
         self.width = self.pixmap.width()
