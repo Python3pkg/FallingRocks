@@ -13,4 +13,4 @@ The game can be paused and resumed at any time by pressing the 'p' key on the ke
 The UI is very simple to use. In the main window are visualized the falling rocks and power-ups. The player is situated on the bottom of the window. Moreover, there is a status bar on the bottom of the screen which shows a useful information about the game like "Paused", "New Game" etc.
 
 ## How to run the game?
-You need to install Python 3.4 or higher and PyQy 5.x or higher in order to run the game. Also you need to run the game by going to the gameplay folder on your console and typing: python falling_rocks.py
+You need to install Python 3.4 or higher and PyQt 5.x or higher in order to run the game. Also you need to run the game by going to the gameplay folder on your console and typing: python falling_rocks.py. If there is a problem with loading the game try to add the path to the file falling_rocks.py to your system enviroment variables (in Windows).
