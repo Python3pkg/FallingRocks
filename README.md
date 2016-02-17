@@ -1,7 +1,7 @@
 # FallingRocks
 
 ## Description
-The game is very intuitive but also very challenging. The player is situated at the bottom of the window. The main goal of the game is to avoid the falling rocks by moving the player left or right using the arrows on the keyboard. The rocks are in different colors and shapes and after every level they speed up so the player has to be more careful. The game ends when a rock hits the player.
+This an implementation of the game Falling Rocks written in Python 3.4. It's a course project for the "Programming in Python" course in FMI in Sofia University "St.Kliment Ohridski". The game is very intuitive but also very challenging. The player is situated at the bottom of the window. The main goal of the game is to avoid the falling rocks by moving the player left or right using the arrows on the keyboard. The rocks are in different colors and shapes and after every level they speed up so the player has to be more careful. The game ends when a rock hits the player.
 
 ## Power-Ups
 The player has the chance to use some power-ups which will help him to avoid the rock longer and to have more fun. They are available for a limited period of time and show up periodically. These power-ups are: invulnerability for the player, slowing down the rocks, removing all of the rocks on the field and shooting down the rocks.
