@@ -1,5 +1,5 @@
-from field import Field
-from game import Game
+from .field import Field
+from .game import Game
 from gui.user_interface import UserInterface
 
 

@@ -3,7 +3,7 @@ from PyQt5.QtCore import QObject, Qt, pyqtSignal, pyqtSlot, QBasicTimer, QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, \
     QDesktopWidget, QWidget, QLabel
 from PyQt5.QtGui import QIcon, QPixmap, QPalette
-from powerup import PowerupType, PowerupTimeInterval
+from .powerup import PowerupType, PowerupTimeInterval
 
 
 class UserInterface:
@@ -187,7 +187,7 @@ class FieldUI(QFrame):
         self.gameplay_timer_events(event)
         if event.timerId() == self.ticker_timer.timerId():
             self.ticker["value"] -= 1
-            print("ticker ", self.ticker)
+            print(("ticker ", self.ticker))
             if self.ticker["type"] == "player_invincibility":
                 self.show_player_invincibility_info(self.ticker["value"])
             if self.ticker["type"] == "slow_down_rocks":
@@ -269,9 +269,9 @@ class FieldUI(QFrame):
         """
         if(self.game.collision_detected(self.player_ui, powerup)):
             print("powerup_collision_detected")
-            print(powerup.type)
+            print((powerup.type))
             if powerup.type == PowerupType.player_invinciblility:
-                print(self.player_ui.is_player_invincible)
+                print((self.player_ui.is_player_invincible))
                 self.init_player_invincibility(powerup)
             elif powerup.type == PowerupType.big_bomb:
                 self.init_big_bomb()
@@ -378,7 +378,7 @@ class FieldUI(QFrame):
         """
         if not self.player_ui.is_player_invincible:
             self.player_ui.set_player_invinciblity()
-            print("init player", self.player_ui.is_player_invincible)
+            print(("init player", self.player_ui.is_player_invincible))
             self.ticker = {"type": "slow_down_rocks",
                            "value": powerup.duration // 1000}
             self.show_slow_down_rocks_info(self.ticker["value"])
@@ -396,7 +396,7 @@ class FieldUI(QFrame):
         self.ticker_timer.stop()
         self.player_ui.set_player_invinciblity()
         print("again")
-        print(self.player_ui.is_player_invincible)
+        print((self.player_ui.is_player_invincible))
         self.main_window.communicate.message_statusbar.\
             emit("The player's invinciblility is off. You are mortal again!")
 
@@ -448,8 +448,8 @@ class FieldUI(QFrame):
         """
         if(not self.player_ui.is_player_invincible and
            self.game.collision_detected(self.player_ui, rock)):
-            print("rock_collision_detected",
-                  self.player_ui.is_player_invincible)
+            print(("rock_collision_detected",
+                  self.player_ui.is_player_invincible))
             self.stop_timers()
             self.game.lose()
             self.main_window.communicate.message_statusbar.\
@@ -606,7 +606,7 @@ class PowerupUI(ShapeUI):
         super().__init__(parent, game)
         self.type = type
         self.image_height_fix = 5
-        print(self.type)
+        print((self.type))
         self.powerup = self.game.powerup
         self.shape = self.powerup
 
@@ -636,7 +636,7 @@ class PowerupUI(ShapeUI):
         self.move(self.x, self.y)
 
     def set_duration(self):
-        print(self.type)
+        print((self.type))
         self.powerup.set_duration(self.type)
 
     @property

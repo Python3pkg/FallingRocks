@@ -1,7 +1,7 @@
-from player import Player
-from rock import Rock
-from powerup import Powerup, PowerupType
-from bullet import Bullet
+from .player import Player
+from .rock import Rock
+from .powerup import Powerup, PowerupType
+from .bullet import Bullet
 
 
 class Field:
